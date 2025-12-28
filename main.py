@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import ttk
 import pyaudio
 import numpy as np
+from datetime import datetime
 
 CHUNK = 2048
 FORMAT = pyaudio.paInt16
@@ -24,8 +25,12 @@ root.title("title")
 label = tk.Label(root, text="volume: 0", font=("Arial", 20))
 label.pack(padx=20, pady=20)
 
-meter = ttk.Progressbar(root, orient="horizontal", length=300, mode="determinate")
-meter.pack(padx=20, pady=20)
+#meter = ttk.Progressbar(root, orient="horizontal", length=300, mode="determinate")
+#meter.pack(padx=20, pady=20)
+
+# log_message box (max 5 lines)
+log_box = tk.Listbox(root, height=5, width=50)
+log_box.pack()
 
 def update_meter():
     try:
@@ -47,8 +52,28 @@ def update_meter():
                 volume = np.sqrt(rms)
 
         # Update GUI components
-        meter["value"] = min(volume, 300)
+        #meter["value"] = min(volume, 300)
         label.config(text=f"volume: {int(volume)}")
+        
+        if int(volume) >= 5000:           
+            # Create timestamp string
+            now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+            # Format log message
+            log_message = f"[{now}] big volume = {volume}"
+
+            # Print to console
+            #print(log_message)
+            
+            # --- Add log to Listbox (max 5 lines) ---
+            log_box.insert(tk.END, log_message)
+            # If more than 5 lines, remove the oldest one
+            if log_box.size() > 5:
+                log_box.delete(0)
+
+            # Append to log file
+            with open("logs.txt", "a") as f:
+                f.write(log_message + "\n")
 
     except Exception as e:
         # Print any unexpected errors and continue running
